@@ -26,7 +26,7 @@ struct CheckoutView: View {
                 }
                 .frame(height: 233)
                 
-                Text("Your total cost is \(order.cost, format: .currency(code: "USD"))")
+                Text("Your total cost is \(order.data.cost, format: .currency(code: "USD"))")
                     .font(.title)
                 
                 Button {
@@ -56,7 +56,7 @@ struct CheckoutView: View {
     }
     
     func placeOrder() async {
-        guard let encoded = try? JSONEncoder().encode(order) else {
+        guard let encoded = try? JSONEncoder().encode(order.data) else {
             print("Failed to encode order.")
             return
         }
@@ -64,13 +64,13 @@ struct CheckoutView: View {
         let url = URL(string: "https://reqres.in/api/cupcakes")!
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        //        request.httpMethod = "POST"
+                request.httpMethod = "POST"
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             
-            let decoded = try JSONDecoder().decode(Order.self, from: data)
-            alertMessage = "Your order for \(decoded.quantity) x \(Order.types[decoded.type].lowercased()) cupcakes is on its way!"
+            let decoded = try JSONDecoder().decode(OrderData.self, from: data)
+            alertMessage = "Your order for \(decoded.quantity) x \(OrderData.types[decoded.type].lowercased()) cupcakes is on its way!"
             showingAlert.toggle()
         } catch {
             alertMessage = "\(error)"
